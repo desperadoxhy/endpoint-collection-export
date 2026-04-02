@@ -25,6 +25,7 @@
 7. 第一阶段的解析与导出实现仅需覆盖 Spring Boot 2 原生自带注解，优先按常见 Spring MVC 模式实现。
 8. 如需参考业务项目的 `controller` 写法，可参考 `/opt/dev/projects/work/scm/middle_platform/sch-order-service`。
 9. 输出给用户的 `build`、`buildPlugin` 等构建/打包命令可默认省略 `cd`，按仓库根目录执行来表达。
+10. 已确认当前代理执行环境无法自行完成 Gradle 构建验证；后续无需再次尝试本地构建，也无需重复向用户解释该限制，只需基于用户提供的真实构建结果继续处理问题。
 
 ## Git 提交规则
 
