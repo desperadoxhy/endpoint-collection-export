@@ -64,7 +64,6 @@ public final class BrunoHelperSettingsState implements PersistentStateComponent<
         if (bruCliPath == null) {
             return "";
         }
-        String normalized = bruCliPath.trim();
-        return "bru".equalsIgnoreCase(normalized) ? "" : normalized;
+        return bruCliPath.trim();
     }
 }

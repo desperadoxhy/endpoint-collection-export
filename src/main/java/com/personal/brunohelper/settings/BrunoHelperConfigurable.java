@@ -35,10 +35,10 @@ public final class BrunoHelperConfigurable implements Configurable {
             panel = new JPanel(new GridBagLayout());
             bruCliPathField = new TextFieldWithBrowseButton();
             bruCliPathField.addBrowseFolderListener(
-                    "选择 Bruno 安装目录",
-                    "请选择包含 bru 可执行文件的目录，也可以直接输入 Bruno 可执行文件的绝对路径。",
+                    "选择 Bruno CLI 可执行文件",
+                    "可直接输入命令名 bru，或浏览选择 Bruno CLI 可执行文件。",
                     null,
-                    FileChooserDescriptorFactory.createSingleFolderDescriptor()
+                    FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
             );
             outputDirectoryField = new JTextField();
             keepTemporaryFileCheckBox = new JCheckBox("失败时保留临时 OpenAPI 文件");
@@ -50,7 +50,7 @@ public final class BrunoHelperConfigurable implements Configurable {
             constraints.fill = GridBagConstraints.NONE;
             constraints.insets = new Insets(0, 0, 8, 8);
             constraints.anchor = GridBagConstraints.WEST;
-            panel.add(new JLabel("Bruno 安装路径"), constraints);
+            panel.add(new JLabel("Bruno CLI 命令"), constraints);
 
             constraints.gridx = 1;
             constraints.weightx = 1;
@@ -63,7 +63,7 @@ public final class BrunoHelperConfigurable implements Configurable {
             constraints.weightx = 1;
             constraints.fill = GridBagConstraints.HORIZONTAL;
             constraints.insets = new Insets(0, 0, 8, 0);
-            panel.add(new JLabel("该配置为全局配置，对所有项目生效；请选择包含 bru 可执行文件的目录。"), constraints);
+            panel.add(new JLabel("该配置为全局配置，对所有项目生效；可填写 bru 或 Bruno CLI 可执行文件绝对路径。"), constraints);
 
             constraints.gridx = 0;
             constraints.gridy = 2;

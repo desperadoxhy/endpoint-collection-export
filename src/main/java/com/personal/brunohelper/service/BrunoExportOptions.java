@@ -30,21 +30,20 @@ public final class BrunoExportOptions {
                 : Paths.get(projectBasePath).resolve(outputDirectory).normalize();
     }
 
-    public static @Nullable Path resolveBruCliPath(@Nullable String configuredPath) {
+    public static @Nullable String resolveBruCliPath(@Nullable String configuredPath) {
         String normalized = normalizeBruCliPath(configuredPath);
         if (normalized == null) {
             return null;
         }
-        Path cliPath;
-        try {
-            cliPath = Paths.get(normalized).normalize();
-        } catch (InvalidPathException exception) {
-            return null;
+        Path cliPath = parsePath(normalized);
+        if (cliPath == null) {
+            return isCommandName(normalized) ? normalized : null;
         }
         if (Files.isDirectory(cliPath)) {
-            return findExecutableInDirectory(cliPath);
+            Path executable = findExecutableInDirectory(cliPath);
+            return executable == null ? null : executable.toString();
         }
-        return Files.isRegularFile(cliPath) ? cliPath : null;
+        return Files.isRegularFile(cliPath) ? cliPath.toString() : (isCommandName(normalized) ? normalized : null);
     }
 
     public static boolean hasConfiguredBruCliPath(@Nullable String configuredPath) {
@@ -54,27 +53,28 @@ public final class BrunoExportOptions {
     public static @Nullable String validateBruCliPath(@Nullable String configuredPath, boolean allowBlank) {
         String normalized = normalizeBruCliPath(configuredPath);
         if (normalized == null) {
-            return allowBlank ? null : "请输入 Bruno 安装路径。";
+            return allowBlank ? null : "请输入 Bruno CLI 命令或可执行文件路径。";
         }
 
-        Path configured;
-        try {
-            configured = Paths.get(normalized).normalize();
-        } catch (InvalidPathException exception) {
-            return "Bruno 安装路径格式无效: " + exception.getMessage();
+        Path configured = parsePath(normalized);
+        if (configured == null) {
+            return isCommandName(normalized)
+                    ? null
+                    : "请输入 Bruno CLI 命令（如 bru）或 Bruno CLI 可执行文件绝对路径。";
         }
-
         if (!configured.isAbsolute()) {
-            return "Bruno 安装路径必须是本机绝对路径。";
+            return isCommandName(normalized)
+                    ? null
+                    : "Bruno CLI 可执行文件路径必须使用绝对路径；如已在 PATH 中，可直接填写 bru。";
         }
         if (!Files.exists(configured)) {
-            return "Bruno 安装路径不存在: " + configured;
+            return "Bruno CLI 路径不存在: " + configured;
         }
         if (Files.isRegularFile(configured)) {
             return null;
         }
         if (!Files.isDirectory(configured)) {
-            return "Bruno 安装路径必须是目录或可执行文件。";
+            return "Bruno CLI 配置必须是命令名、可执行文件或包含 CLI 的目录。";
         }
         return findExecutableInDirectory(configured) == null
                 ? "所选目录中未找到 Bruno CLI，可执行文件名需为 bru、bru.cmd、bru.exe 或 bru.bat。"
@@ -103,9 +103,23 @@ public final class BrunoExportOptions {
             return null;
         }
         String normalized = configuredPath.trim();
-        if (normalized.isEmpty() || "bru".equalsIgnoreCase(normalized)) {
+        if (normalized.isEmpty()) {
             return null;
         }
         return normalized;
+    }
+
+    private static @Nullable Path parsePath(String configuredPath) {
+        try {
+            return Paths.get(configuredPath).normalize();
+        } catch (InvalidPathException exception) {
+            return null;
+        }
+    }
+
+    private static boolean isCommandName(String configuredPath) {
+        return !configuredPath.contains("/")
+                && !configuredPath.contains("\\")
+                && !configuredPath.contains(" ");
     }
 }
