@@ -8,16 +8,14 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.personal.brunohelper.context.ControllerContextResolver;
 import com.personal.brunohelper.model.ExportOutcome;
 import com.personal.brunohelper.notification.BrunoHelperNotifier;
-import com.personal.brunohelper.service.ControllerExportService;
-import com.personal.brunohelper.service.StubControllerExportService;
+import com.personal.brunohelper.service.TemporaryOpenApiExportService;
 import org.jetbrains.annotations.NotNull;
 
 public final class ExportControllerToBrunoAction extends AnAction {
-
-    private final ControllerExportService exportService = new StubControllerExportService();
 
     @Override
     public @NotNull ActionUpdateThread getActionUpdateThread() {
@@ -37,11 +35,13 @@ public final class ExportControllerToBrunoAction extends AnAction {
         if (project == null || controllerClass == null) {
             return;
         }
+        TemporaryOpenApiExportService exportService = new TemporaryOpenApiExportService(project);
+        SmartPsiElementPointer<PsiClass> controllerPointer = exportService.createPointer(controllerClass);
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "导出到 Bruno", false) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
-                ExportOutcome outcome = exportService.export(controllerClass);
+                ExportOutcome outcome = exportService.export(controllerPointer);
                 if (outcome.isSuccess()) {
                     BrunoHelperNotifier.info(project, outcome.getMessage());
                 } else {
