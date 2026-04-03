@@ -10,13 +10,12 @@ public final class BrunoExportReportFormatter {
 
     public String format(ExportReport report) {
         List<Row> rows = new ArrayList<>();
-        rows.add(new Row("Relative URL", "Method Name", "Export Result", "YAML File", "Endpoint Name"));
+        rows.add(new Row("Relative URL", "Method Name", "Export Result", "Endpoint Name"));
         for (ExportEndpointResult endpointResult : report.endpointResults()) {
             rows.add(new Row(
                     endpointResult.relativeUrl(),
                     endpointResult.methodName(),
                     endpointResult.status().getDisplayName(),
-                    endpointResult.yamlFileName(),
                     endpointResult.endpointName()
             ));
         }
@@ -24,7 +23,6 @@ public final class BrunoExportReportFormatter {
         int urlWidth = columnWidth(rows, Row::relativeUrl);
         int methodWidth = columnWidth(rows, Row::methodName);
         int statusWidth = columnWidth(rows, Row::status);
-        int fileWidth = columnWidth(rows, Row::yamlFileName);
         int nameWidth = columnWidth(rows, Row::endpointName);
 
         StringBuilder builder = new StringBuilder();
@@ -41,7 +39,6 @@ public final class BrunoExportReportFormatter {
                 + repeat('-', urlWidth + 2) + "+"
                 + repeat('-', methodWidth + 2) + "+"
                 + repeat('-', statusWidth + 2) + "+"
-                + repeat('-', fileWidth + 2) + "+"
                 + repeat('-', nameWidth + 2) + "+";
         builder.append(border).append('\n');
         for (int index = 0; index < rows.size(); index++) {
@@ -49,7 +46,6 @@ public final class BrunoExportReportFormatter {
             builder.append("| ").append(padRight(row.relativeUrl(), urlWidth))
                     .append(" | ").append(padRight(row.methodName(), methodWidth))
                     .append(" | ").append(padRight(row.status(), statusWidth))
-                    .append(" | ").append(padRight(row.yamlFileName(), fileWidth))
                     .append(" | ").append(padRight(row.endpointName(), nameWidth))
                     .append(" |").append('\n');
             if (index == 0) {
@@ -94,7 +90,6 @@ public final class BrunoExportReportFormatter {
             String relativeUrl,
             String methodName,
             String status,
-            String yamlFileName,
             String endpointName
     ) {
     }

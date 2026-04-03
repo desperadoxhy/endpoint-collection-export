@@ -40,5 +40,7 @@ class BrunoExportReportFormatterTest {
         assertTrue(content.contains("查询订单文件"));
         assertTrue(content.contains("SUCCESS"));
         assertTrue(content.contains("SKIPPED"));
+        assertTrue(!content.contains("YAML File"));
+        assertTrue(!content.contains("GET-order-files-id.yml"));
     }
 }
