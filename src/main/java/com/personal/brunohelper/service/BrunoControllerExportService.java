@@ -8,6 +8,7 @@ import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.personal.brunohelper.model.ControllerExportModel;
 import com.personal.brunohelper.model.ExportOutcome;
+import com.personal.brunohelper.model.ExportReport;
 import com.personal.brunohelper.parser.SpringControllerParser;
 import com.personal.brunohelper.settings.BrunoHelperSettingsState;
 import org.jetbrains.annotations.Nullable;
@@ -31,10 +32,12 @@ public final class BrunoControllerExportService implements ControllerExportServi
             SmartPsiElementPointer<PsiClass> controllerPointer,
             @Nullable SmartPsiElementPointer<PsiMethod> methodPointer
     ) {
-        ControllerExportModel exportModel = ReadAction.compute(() -> buildModel(controllerPointer, methodPointer));
-        if (exportModel == null) {
+        ParsedControllerModels parsedModels = ReadAction.compute(() -> buildModels(controllerPointer, methodPointer));
+        if (parsedModels == null) {
             return ExportOutcome.failure("当前 controller 已失效，无法继续导出。");
         }
+        ControllerExportModel controllerModel = parsedModels.controllerModel();
+        ControllerExportModel exportModel = parsedModels.exportModel();
         if (exportModel.getEndpoints().isEmpty()) {
             return ExportOutcome.failure("未在当前 controller 中识别到 Spring MVC 接口。");
         }
@@ -47,24 +50,36 @@ public final class BrunoControllerExportService implements ControllerExportServi
             controllerDirectory = BrunoExportOptions.resolveControllerDirectory(projectDirectory, exportModel.getControllerName());
             Files.createDirectories(projectDirectory);
         } catch (IOException exception) {
-            return ExportOutcome.failure("创建 Bruno 输出目录失败: " + exception.getMessage());
+            return ExportOutcome.failure(
+                    "创建 Bruno 输出目录失败: " + exception.getMessage(),
+                    emptyReport(controllerModel)
+            );
         }
 
         BrunoCollectionWriter.PreparedCollection preparedCollection = ReadAction.compute(() ->
-                exportModel == null ? null : collectionWriter.prepareCollection(exportModel, project.getName(), projectDirectory, controllerDirectory)
+                collectionWriter.prepareCollection(exportModel, project.getName(), projectDirectory, controllerDirectory)
         );
         if (preparedCollection == null) {
-            return ExportOutcome.failure("当前 controller 已失效，无法继续导出。");
+            return ExportOutcome.failure("当前 controller 已失效，无法继续导出。", emptyReport(controllerModel));
         }
 
         try {
             BrunoCollectionWriter.GenerationResult result = collectionWriter.writePreparedCollection(preparedCollection);
-            return ExportOutcome.success("已更新 Bruno 项目 `" + result.collectionName()
+            ExportReport report = buildReport(controllerModel, result);
+            String message = "已更新 Bruno 项目 `" + result.collectionName()
                     + "`，项目目录: " + result.projectDirectory()
                     + "，controller目录: " + result.controllerDirectory()
-                    + "，新增 " + result.createdRequestCount() + " 个接口文件，跳过 " + result.skippedRequestCount() + " 个已存在文件。");
+                    + "，新增 " + result.createdRequestCount() + " 个接口文件，跳过 " + result.skippedRequestCount()
+                    + " 个已存在文件，失败 " + result.failedRequestCount() + " 个接口文件。";
+            if (result.failedRequestCount() > 0) {
+                return ExportOutcome.failure(message, report);
+            }
+            return ExportOutcome.success(message, report);
         } catch (IOException exception) {
-            return ExportOutcome.failure("生成 Bruno Collection 文件失败: " + exception.getMessage());
+            return ExportOutcome.failure(
+                    "生成 Bruno Collection 文件失败: " + exception.getMessage(),
+                    emptyReport(controllerModel)
+            );
         }
     }
 
@@ -79,7 +94,7 @@ public final class BrunoControllerExportService implements ControllerExportServi
         return SmartPointerManager.getInstance(project).createSmartPsiElementPointer(method);
     }
 
-    private ControllerExportModel buildModel(
+    private ParsedControllerModels buildModels(
             SmartPsiElementPointer<PsiClass> controllerPointer,
             @Nullable SmartPsiElementPointer<PsiMethod> methodPointer
     ) {
@@ -91,11 +106,46 @@ public final class BrunoControllerExportService implements ControllerExportServi
         if (methodPointer != null && (method == null || !method.isValid())) {
             return null;
         }
-        return parser.parse(controllerClass, method);
+        ControllerExportModel controllerModel = parser.parse(controllerClass);
+        ControllerExportModel exportModel = parser.parse(controllerClass, method);
+        return new ParsedControllerModels(controllerModel, exportModel);
+    }
+
+    private ExportReport buildReport(
+            ControllerExportModel controllerModel,
+            BrunoCollectionWriter.GenerationResult generationResult
+    ) {
+        return new ExportReport(
+                project.getName(),
+                controllerModel.getControllerName(),
+                controllerModel.getEndpoints().size(),
+                generationResult.endpointResults().size(),
+                generationResult.skippedRequestCount(),
+                generationResult.createdRequestCount(),
+                generationResult.endpointResults()
+        );
+    }
+
+    private ExportReport emptyReport(ControllerExportModel controllerModel) {
+        return new ExportReport(
+                project.getName(),
+                controllerModel.getControllerName(),
+                controllerModel.getEndpoints().size(),
+                0,
+                0,
+                0,
+                java.util.List.of()
+        );
     }
 
     private Path resolveProjectDirectory(BrunoHelperSettingsState settings) {
         Path baseOutputDirectory = BrunoExportOptions.resolveBaseOutputDirectory(settings.getCollectionOutputDirectory());
         return BrunoExportOptions.resolveProjectDirectory(baseOutputDirectory, project.getName());
+    }
+
+    private record ParsedControllerModels(
+            ControllerExportModel controllerModel,
+            ControllerExportModel exportModel
+    ) {
     }
 }

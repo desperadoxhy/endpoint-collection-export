@@ -43,7 +43,7 @@ public final class SpringControllerParser {
 
     public ControllerExportModel parse(PsiClass controllerClass, @Nullable PsiMethod targetMethod) {
         String description = resolveDescription(controllerClass, null);
-        String summary = DocCommentUtil.firstSentence(description);
+        String summary = resolveSummary(controllerClass, controllerClass.getName());
         List<String> classPaths = resolveClassPaths(controllerClass);
         List<EndpointExportModel> endpoints = new ArrayList<>();
 
@@ -83,7 +83,7 @@ public final class SpringControllerParser {
         }
 
         String description = resolveDescription(method, null);
-        String summary = DocCommentUtil.firstSentence(description);
+        String summary = resolveSummary(method, method.getName());
         Map<String, String> paramDescriptions = resolveParameterDescriptions(method);
 
         List<EndpointParameterModel> parameters = new ArrayList<>();
@@ -108,7 +108,7 @@ public final class SpringControllerParser {
 
         return new EndpointExportModel(
                 controllerClass.getName() + "." + method.getName(),
-                summary.isBlank() ? method.getName() : summary,
+                summary,
                 description,
                 paths,
                 httpMethods,
@@ -291,6 +291,22 @@ public final class SpringControllerParser {
                 description = DocCommentUtil.extractDescription(superMethod);
                 if (!description.isBlank()) {
                     return description;
+                }
+            }
+        }
+        return fallback == null ? "" : fallback;
+    }
+
+    private String resolveSummary(com.intellij.psi.PsiDocCommentOwner owner, @Nullable String fallback) {
+        String summary = DocCommentUtil.extractSummary(owner);
+        if (!summary.isBlank()) {
+            return summary;
+        }
+        if (owner instanceof PsiMethod method) {
+            for (PsiMethod superMethod : method.findSuperMethods()) {
+                summary = DocCommentUtil.extractSummary(superMethod);
+                if (!summary.isBlank()) {
+                    return summary;
                 }
             }
         }

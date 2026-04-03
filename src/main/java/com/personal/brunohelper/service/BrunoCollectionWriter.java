@@ -4,6 +4,8 @@ import com.intellij.psi.PsiType;
 import com.personal.brunohelper.model.ControllerExportModel;
 import com.personal.brunohelper.model.EndpointExportModel;
 import com.personal.brunohelper.model.EndpointParameterModel;
+import com.personal.brunohelper.model.ExportEndpointResult;
+import com.personal.brunohelper.model.ExportEndpointStatus;
 import com.personal.brunohelper.model.ParameterSource;
 import com.personal.brunohelper.model.RequestBodyModel;
 import com.personal.brunohelper.openapi.PsiTypeSchemaResolver;
@@ -80,16 +82,46 @@ public final class BrunoCollectionWriter {
         int sequence = 1;
         int createdCount = 0;
         int skippedCount = 0;
+        int failedCount = 0;
+        List<ExportEndpointResult> endpointResults = new ArrayList<>();
         for (RequestFile requestFile : preparedCollection.requestFiles()) {
-            String fileName = requestFile.fileSlug() + ".yml";
+            String fileName = requestFile.fileName();
             Path requestFilePath = preparedCollection.controllerDirectory().resolve(fileName);
             if (Files.exists(requestFilePath)) {
                 skippedCount++;
+                endpointResults.add(new ExportEndpointResult(
+                        requestFile.relativeUrl(),
+                        requestFile.methodName(),
+                        requestFile.endpointName(),
+                        ExportEndpointStatus.SKIPPED,
+                        fileName,
+                        "接口文件已存在，已跳过。"
+                ));
                 sequence++;
                 continue;
             }
-            writeFile(requestFilePath, renderRequestFile(requestFile, sequence));
-            createdCount++;
+            try {
+                writeFile(requestFilePath, renderRequestFile(requestFile, sequence));
+                createdCount++;
+                endpointResults.add(new ExportEndpointResult(
+                        requestFile.relativeUrl(),
+                        requestFile.methodName(),
+                        requestFile.endpointName(),
+                        ExportEndpointStatus.SUCCESS,
+                        fileName,
+                        null
+                ));
+            } catch (IOException exception) {
+                failedCount++;
+                endpointResults.add(new ExportEndpointResult(
+                        requestFile.relativeUrl(),
+                        requestFile.methodName(),
+                        requestFile.endpointName(),
+                        ExportEndpointStatus.FAILED,
+                        fileName,
+                        exception.getMessage()
+                ));
+            }
             sequence++;
         }
 
@@ -98,7 +130,9 @@ public final class BrunoCollectionWriter {
                 preparedCollection.projectDirectory(),
                 preparedCollection.controllerDirectory(),
                 createdCount,
-                skippedCount
+                skippedCount,
+                failedCount,
+                List.copyOf(endpointResults)
         );
     }
 
@@ -173,7 +207,9 @@ public final class BrunoCollectionWriter {
 
         return new RequestFile(
                 requestName,
-                buildFileSlug(method, path, endpoint.getOperationId()),
+                path,
+                extractMethodName(endpoint.getOperationId()),
+                buildFileSlug(method, path, endpoint.getOperationId()) + ".yml",
                 method,
                 "{{baseUrl}}" + path,
                 params,
@@ -197,6 +233,16 @@ public final class BrunoCollectionWriter {
             basis = basis + "-" + operationId;
         }
         return BrunoExportOptions.sanitizeFileSystemName(basis);
+    }
+
+    private String extractMethodName(String operationId) {
+        if (operationId == null || operationId.isBlank()) {
+            return "";
+        }
+        int separatorIndex = operationId.lastIndexOf('.');
+        return separatorIndex >= 0 && separatorIndex < operationId.length() - 1
+                ? operationId.substring(separatorIndex + 1)
+                : operationId;
     }
 
     private String buildDocs(EndpointExportModel endpoint) {
@@ -496,7 +542,9 @@ public final class BrunoCollectionWriter {
             Path projectDirectory,
             Path controllerDirectory,
             int createdRequestCount,
-            int skippedRequestCount
+            int skippedRequestCount,
+            int failedRequestCount,
+            List<ExportEndpointResult> endpointResults
     ) {
     }
 
@@ -510,8 +558,10 @@ public final class BrunoCollectionWriter {
     }
 
     private record RequestFile(
-            String name,
-            String fileSlug,
+            String endpointName,
+            String relativeUrl,
+            String methodName,
+            String fileName,
             String method,
             String url,
             List<ParamEntry> params,
@@ -519,6 +569,9 @@ public final class BrunoCollectionWriter {
             BodyEntry body,
             String docs
     ) {
+        String name() {
+            return endpointName;
+        }
     }
 
     private record ParamEntry(String name, String value, String type) {

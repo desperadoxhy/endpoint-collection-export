@@ -26,6 +26,18 @@ public final class DocCommentUtil {
         return normalizeWhitespace(builder.toString());
     }
 
+    public static String extractSummary(PsiDocCommentOwner owner) {
+        PsiDocComment comment = owner.getDocComment();
+        if (comment == null) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (PsiElement element : comment.getDescriptionElements()) {
+            builder.append(element.getText());
+        }
+        return sanitizeSummaryText(builder.toString());
+    }
+
     public static Map<String, String> extractParameterDescriptions(PsiDocCommentOwner owner) {
         Map<String, String> descriptions = new LinkedHashMap<>();
         PsiDocComment comment = owner.getDocComment();
@@ -52,11 +64,33 @@ public final class DocCommentUtil {
         if (text == null || text.isBlank()) {
             return "";
         }
-        int lineBreakIndex = text.indexOf('\n');
-        if (lineBreakIndex >= 0) {
-            return text.substring(0, lineBreakIndex).trim();
+        String sanitized = sanitizeSummaryText(text);
+        if (!sanitized.isBlank()) {
+            return sanitized;
         }
         return text.trim();
+    }
+
+    public static String sanitizeSummaryText(@Nullable String text) {
+        if (text == null || text.isBlank()) {
+            return "";
+        }
+        String normalized = text
+                .replace("\r\n", "\n")
+                .replace('\r', '\n')
+                .replaceAll("(?i)<br\\s*/?>", "\n")
+                .replaceAll("(?i)</p\\s*>", "\n")
+                .replaceAll("(?i)<p\\b[^>]*>", "")
+                .replaceAll("(?i)</li\\s*>", "\n")
+                .replaceAll("(?i)<li\\b[^>]*>", "- ")
+                .replaceAll("<[^>]+>", " ");
+        for (String line : normalized.split("\n")) {
+            String sanitizedLine = normalizeWhitespace(line);
+            if (!sanitizedLine.isBlank()) {
+                return sanitizedLine;
+            }
+        }
+        return normalizeWhitespace(normalized);
     }
 
     private static String normalizeWhitespace(String text) {

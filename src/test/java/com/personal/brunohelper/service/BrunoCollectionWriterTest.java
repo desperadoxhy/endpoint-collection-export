@@ -4,6 +4,7 @@ import com.intellij.psi.PsiType;
 import com.personal.brunohelper.model.ControllerExportModel;
 import com.personal.brunohelper.model.EndpointExportModel;
 import com.personal.brunohelper.model.EndpointParameterModel;
+import com.personal.brunohelper.model.ExportEndpointStatus;
 import com.personal.brunohelper.model.ParameterSource;
 import com.personal.brunohelper.model.RequestBodyModel;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,10 @@ class BrunoCollectionWriterTest {
         assertEquals(controllerDirectory, result.controllerDirectory());
         assertEquals(1, result.createdRequestCount());
         assertEquals(0, result.skippedRequestCount());
+        assertEquals(0, result.failedRequestCount());
+        assertEquals(1, result.endpointResults().size());
+        assertEquals(ExportEndpointStatus.SUCCESS, result.endpointResults().get(0).status());
+        assertEquals("/order-files/:id", result.endpointResults().get(0).relativeUrl());
         assertTrue(Files.exists(result.projectDirectory().resolve("opencollection.yml")));
         assertTrue(Files.exists(result.controllerDirectory().resolve("GET-order-files-id-OrderFileController.getById.yml")));
         assertTrue(Files.notExists(result.controllerDirectory().resolve("opencollection.yml")));
@@ -98,6 +103,7 @@ class BrunoCollectionWriterTest {
 
         assertEquals(1, result.createdRequestCount());
         assertEquals(0, result.skippedRequestCount());
+        assertEquals(0, result.failedRequestCount());
         Path requestFile = result.controllerDirectory().resolve("POST-health-echo-HealthController.echo.yml");
         String requestContent = Files.readString(requestFile);
         assertTrue(requestContent.contains("method: POST"));
@@ -167,6 +173,7 @@ class BrunoCollectionWriterTest {
         BrunoCollectionWriter.GenerationResult result = writer.writeCollection(model, "demo project", projectDirectory, controllerDirectory);
 
         assertEquals(1, result.createdRequestCount());
+        assertEquals(0, result.failedRequestCount());
         assertEquals("keep-me", Files.readString(existingNote));
         assertTrue(Files.exists(controllerDirectory.resolve("GET-order-files-id-OrderFileController.getById.yml")));
     }
@@ -200,6 +207,8 @@ class BrunoCollectionWriterTest {
 
         assertEquals(0, result.createdRequestCount());
         assertEquals(1, result.skippedRequestCount());
+        assertEquals(0, result.failedRequestCount());
+        assertEquals(ExportEndpointStatus.SKIPPED, result.endpointResults().get(0).status());
         assertEquals("existing-request", Files.readString(existingRequestFile));
     }
 }

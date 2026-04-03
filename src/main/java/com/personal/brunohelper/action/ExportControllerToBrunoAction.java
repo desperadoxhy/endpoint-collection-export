@@ -3,6 +3,7 @@ package com.personal.brunohelper.action;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -16,6 +17,7 @@ import com.personal.brunohelper.model.ExportOutcome;
 import com.personal.brunohelper.notification.BrunoHelperNotifier;
 import com.personal.brunohelper.service.BrunoControllerExportService;
 import com.personal.brunohelper.service.BrunoExportOptions;
+import com.personal.brunohelper.service.BrunoExportResultConsole;
 import com.personal.brunohelper.settings.BrunoHelperSettingsState;
 import com.personal.brunohelper.settings.BrunoOutputDirectoryDialog;
 import org.jetbrains.annotations.NotNull;
@@ -52,11 +54,14 @@ public final class ExportControllerToBrunoAction extends AnAction {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 ExportOutcome outcome = exportService.export(controllerPointer, methodPointer);
-                if (outcome.isSuccess()) {
-                    BrunoHelperNotifier.info(project, outcome.getMessage());
-                } else {
-                    BrunoHelperNotifier.warn(project, outcome.getMessage());
-                }
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    new BrunoExportResultConsole().show(project, outcome);
+                    if (outcome.isSuccess()) {
+                        BrunoHelperNotifier.info(project, outcome.getMessage());
+                    } else {
+                        BrunoHelperNotifier.warn(project, outcome.getMessage());
+                    }
+                });
             }
         });
     }
