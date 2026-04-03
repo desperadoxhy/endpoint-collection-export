@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 public final class BrunoControllerExportService implements ControllerExportService {
 
     private static final long CLI_TIMEOUT_SECONDS = 60L;
-    private static final String BRU_COMMAND = "bru";
 
     private final Project project;
     private final SpringControllerParser parser = new SpringControllerParser();
@@ -110,7 +109,7 @@ public final class BrunoControllerExportService implements ControllerExportServi
     private ProcessResult runBruImport(Path openApiFile, Path outputDirectory, String collectionName)
             throws IOException, InterruptedException {
         List<String> command = new ArrayList<>();
-        command.add(BRU_COMMAND);
+        command.add(BrunoExportOptions.resolveBruCommand());
         command.add("import");
         command.add("openapi");
         command.add("--source");
