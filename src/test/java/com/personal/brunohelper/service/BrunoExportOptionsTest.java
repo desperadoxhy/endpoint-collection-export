@@ -58,4 +58,24 @@ class BrunoExportOptionsTest {
     void shouldReturnNullWhenWindowsPathDoesNotContainBru() {
         assertNull(BrunoExportOptions.resolveCommandOnWindows("bru", "", ".COM;.EXE;.BAT;.CMD"));
     }
+
+    @Test
+    void shouldUseRelativeOpenApiSourceOnWindows() {
+        Path openApiFile = Path.of("/tmp/demo", "OrderFileController.openapi.json");
+
+        assertEquals(
+                "OrderFileController.openapi.json",
+                BrunoExportOptions.resolveOpenApiSourceArgument(openApiFile, true)
+        );
+    }
+
+    @Test
+    void shouldUseParentDirectoryAsWorkingDirectoryOnWindows() {
+        Path openApiFile = Path.of("/tmp/demo", "OrderFileController.openapi.json");
+
+        assertEquals(
+                Path.of("/tmp/demo"),
+                BrunoExportOptions.resolveBruWorkingDirectory(openApiFile, true)
+        );
+    }
 }

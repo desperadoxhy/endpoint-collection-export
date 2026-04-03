@@ -113,15 +113,20 @@ public final class BrunoControllerExportService implements ControllerExportServi
         command.add("import");
         command.add("openapi");
         command.add("--source");
-        command.add(resolveOpenApiSourceArgument(openApiFile));
+        command.add(BrunoExportOptions.resolveOpenApiSourceArgument(openApiFile));
         command.add("--output");
         command.add(outputDirectory.toString());
         command.add("--collection-name");
         command.add(collectionName);
 
-        Process process = new ProcessBuilder(command)
-                .redirectErrorStream(true)
-                .start();
+        ProcessBuilder processBuilder = new ProcessBuilder(command)
+                .redirectErrorStream(true);
+        Path workingDirectory = BrunoExportOptions.resolveBruWorkingDirectory(openApiFile);
+        if (workingDirectory != null) {
+            processBuilder.directory(workingDirectory.toFile());
+        }
+
+        Process process = processBuilder.start();
 
         boolean finished = process.waitFor(CLI_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         if (!finished) {
@@ -135,12 +140,6 @@ public final class BrunoControllerExportService implements ControllerExportServi
 
     private String deriveCollectionName(String controllerName) {
         return BrunoExportOptions.deriveCollectionName(controllerName);
-    }
-
-    private String resolveOpenApiSourceArgument(Path openApiFile) {
-        return BrunoExportOptions.isWindows()
-                ? openApiFile.toUri().toString()
-                : openApiFile.toString();
     }
 
     private String maybeKeepTemporaryFile(Path openApiFile, BrunoHelperSettingsState settings, boolean failed) {

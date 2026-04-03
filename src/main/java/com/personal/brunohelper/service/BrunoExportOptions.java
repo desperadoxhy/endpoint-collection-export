@@ -48,6 +48,14 @@ public final class BrunoExportOptions {
         return resolved == null ? BRU_COMMAND : resolved;
     }
 
+    public static String resolveOpenApiSourceArgument(Path openApiFile) {
+        return resolveOpenApiSourceArgument(openApiFile, isWindows());
+    }
+
+    public static @Nullable Path resolveBruWorkingDirectory(Path openApiFile) {
+        return resolveBruWorkingDirectory(openApiFile, isWindows());
+    }
+
     static @Nullable String resolveCommandOnWindows(String commandName, @Nullable String pathEnv, @Nullable String pathExtEnv) {
         if (commandName.isBlank() || commandName.contains("/") || commandName.contains("\\") || commandName.contains(" ")) {
             return null;
@@ -80,6 +88,18 @@ public final class BrunoExportOptions {
 
     static boolean isWindows() {
         return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
+    }
+
+    static String resolveOpenApiSourceArgument(Path openApiFile, boolean windows) {
+        if (windows) {
+            Path fileName = openApiFile.getFileName();
+            return fileName == null ? openApiFile.toString() : fileName.toString();
+        }
+        return openApiFile.toString();
+    }
+
+    static @Nullable Path resolveBruWorkingDirectory(Path openApiFile, boolean windows) {
+        return windows ? openApiFile.getParent() : null;
     }
 
     private static List<String> splitPathEntries(@Nullable String pathEnv) {
