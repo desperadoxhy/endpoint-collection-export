@@ -7,10 +7,9 @@
 当前已确认的核心功能如下：
 
 1. 在 Spring Boot 项目的 `controller` 中，支持右键菜单操作：`导出到 Bruno`。
-2. 导出时，基于当前 `controller` 的注释、注解、入参类型、入参注解、出参类型，生成临时 OpenAPI 文档。
-3. 通过本机 Bruno CLI 将生成的临时 OpenAPI 文档导入 Bruno。
+2. 导出时，基于当前 `controller` 的注释、注解、入参类型、入参注解、出参类型，直接生成 Bruno 原生 Collection 文件。
+3. 生成结果优先采用 Bruno 官方推荐的 OpenCollection YAML 格式，直接写入用户指定目录，不再依赖 Bruno CLI。
 4. 第一阶段仅需支持 Spring Boot 2 的原生自带 Web 注解，不额外兼容第三方扩展注解。
-5. 插件固定调用本机环境中的 `bru` 命令执行 Bruno CLI 导入，不再提供 Bruno CLI 命令或可执行文件路径配置。
 
 后续当项目需求新增、变更或收敛时，必须同步更新本文件中的“项目简介”，确保 AGENTS.md 始终反映最新项目目标与范围。
 
