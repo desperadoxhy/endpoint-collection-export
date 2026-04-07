@@ -18,7 +18,7 @@
 
 ## 功能特性
 
-- 在 Spring Boot `controller` 上提供右键菜单：`导出接口集合`
+- 在 Spring Boot `controller` 上提供右键菜单：`导出到 Bruno`
 - 支持在方法名上右键，只导出当前单个接口
 - 支持导出当前 controller 下的全部接口
 - 支持导出当前 controller 继承基类中已实现的 Spring 接口
@@ -43,7 +43,7 @@
 1. 在 IDEA 中安装插件
 2. 打开 `Settings` -> `Tools` -> `Endpoint Collection Export`
 3. 配置接口集合基础输出目录
-4. 在 Spring Boot Controller 类名上右键，选择 `导出接口集合`
+4. 在 Spring Boot Controller 类名上右键，选择 `导出到 Bruno`
 5. 或在某个方法名上右键，只导出当前方法对应接口
 
 如果基础输出目录未配置，导出时会先弹出对话框要求输入或选择目录。

@@ -36,8 +36,8 @@
         <action
                 id="io.github.zerojehovah.endpointcollectionexport.action.ExportControllerAction"
                 class="com.personal.brunohelper.action.ExportControllerToBrunoAction"
-                text="导出接口集合"
-                description="导出当前 Spring Controller 为 OpenCollection 接口集合">
+                text="导出到 Bruno"
+                description="导出当前 Spring Controller 到 Bruno">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
         </action>
