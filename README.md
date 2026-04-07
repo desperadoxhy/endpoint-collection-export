@@ -6,6 +6,16 @@
 
 当前实现不依赖 Bruno CLI，导出结果直接写入 Bruno 推荐的 OpenCollection YAML 结构。
 
+## 许可说明
+
+本项目采用 `Apache License 2.0` 开源许可。
+
+- 允许阅读、复制、修改、重新发布和商用
+- 分发时需保留版权声明与许可文本
+- 具体约束以仓库根目录 `LICENSE` 为准
+
+完整许可条款见仓库根目录的 `LICENSE` 文件。
+
 ## 功能特性
 
 - 在 Spring Boot `controller` 上提供右键菜单：`导出到 Bruno`
