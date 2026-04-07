@@ -8,6 +8,7 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.actions.RevealFileAction;
+import com.intellij.openapi.project.Project;
 import com.personal.brunohelper.model.ExportOutcome;
 import com.personal.brunohelper.model.ExportReport;
 import org.jetbrains.annotations.Nullable;
