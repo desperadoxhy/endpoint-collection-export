@@ -43,10 +43,12 @@ public final class BrunoControllerExportService implements ControllerExportServi
         }
 
         BrunoHelperSettingsState settings = BrunoHelperSettingsState.getInstance();
+        Path baseOutputDirectory = BrunoExportOptions.resolveBaseOutputDirectory(settings.getCollectionOutputDirectory());
         Path projectDirectory = null;
         Path controllerDirectory = null;
+        Path workspaceFile = BrunoExportOptions.resolveWorkspaceFile(baseOutputDirectory);
         try {
-            projectDirectory = resolveProjectDirectory(settings);
+            projectDirectory = BrunoExportOptions.resolveProjectDirectory(baseOutputDirectory, project.getName());
             controllerDirectory = BrunoExportOptions.resolveControllerDirectory(projectDirectory, exportModel.getControllerName());
             Files.createDirectories(projectDirectory);
         } catch (IOException exception) {
@@ -58,8 +60,15 @@ public final class BrunoControllerExportService implements ControllerExportServi
 
         Path finalProjectDirectory = projectDirectory;
         Path finalControllerDirectory = controllerDirectory;
+        Path finalWorkspaceFile = workspaceFile;
         BrunoCollectionWriter.PreparedCollection preparedCollection = ReadAction.compute(() ->
-                collectionWriter.prepareCollection(exportModel, project.getName(), finalProjectDirectory, finalControllerDirectory)
+                collectionWriter.prepareCollection(
+                        exportModel,
+                        project.getName(),
+                        finalProjectDirectory,
+                        finalControllerDirectory,
+                        finalWorkspaceFile
+                )
         );
         if (preparedCollection == null) {
             return ExportOutcome.failure("当前 controller 已失效，无法继续导出。", emptyReport(controllerModel));
@@ -152,11 +161,6 @@ public final class BrunoControllerExportService implements ControllerExportServi
                 0,
                 java.util.List.of()
         );
-    }
-
-    private Path resolveProjectDirectory(BrunoHelperSettingsState settings) {
-        Path baseOutputDirectory = BrunoExportOptions.resolveBaseOutputDirectory(settings.getCollectionOutputDirectory());
-        return BrunoExportOptions.resolveProjectDirectory(baseOutputDirectory, project.getName());
     }
 
     private record ParsedControllerModels(

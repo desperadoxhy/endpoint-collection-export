@@ -36,6 +36,14 @@ public final class BrunoExportOptions {
         return baseOutputDirectory.resolve(safeProjectName);
     }
 
+    public static Path resolveWorkspaceFile(Path baseOutputDirectory) {
+        Path workspaceDirectory = baseOutputDirectory.getParent();
+        if (workspaceDirectory == null) {
+            workspaceDirectory = baseOutputDirectory;
+        }
+        return workspaceDirectory.resolve("workspace.yml");
+    }
+
     public static Path resolveControllerDirectory(Path projectDirectory, String controllerName) {
         String safeControllerName = sanitizeFileSystemName(controllerName == null || controllerName.isBlank() ? "Controller" : controllerName);
         return projectDirectory.resolve(safeControllerName);

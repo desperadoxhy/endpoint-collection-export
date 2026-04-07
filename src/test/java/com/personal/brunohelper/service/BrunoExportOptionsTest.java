@@ -30,6 +30,10 @@ class BrunoExportOptionsTest {
                 Path.of("/workspace/bruno-output/demo-project/OrderFileController"),
                 BrunoExportOptions.resolveControllerDirectory(projectDirectory, "OrderFileController")
         );
+        assertEquals(
+                Path.of("/workspace/workspace.yml"),
+                BrunoExportOptions.resolveWorkspaceFile(Path.of("/workspace/bruno-output"))
+        );
     }
 
     @Test

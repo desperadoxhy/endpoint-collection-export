@@ -55,14 +55,24 @@ public final class BrunoCollectionWriter {
             Path projectDirectory,
             Path controllerDirectory
     ) throws IOException {
-        return writePreparedCollection(prepareCollection(model, projectName, projectDirectory, controllerDirectory));
+        Path baseOutputDirectory = projectDirectory.getParent() == null ? projectDirectory : projectDirectory.getParent();
+        return writePreparedCollection(
+                prepareCollection(
+                        model,
+                        projectName,
+                        projectDirectory,
+                        controllerDirectory,
+                        BrunoExportOptions.resolveWorkspaceFile(baseOutputDirectory)
+                )
+        );
     }
 
     PreparedCollection prepareCollection(
             ControllerExportModel model,
             String projectName,
             Path projectDirectory,
-            Path controllerDirectory
+            Path controllerDirectory,
+            Path workspaceFile
     ) {
         String collectionName = projectName == null || projectName.isBlank() ? "project" : projectName;
         String controllerDisplayName = model.getSummary() == null || model.getSummary().isBlank()
@@ -73,6 +83,7 @@ public final class BrunoCollectionWriter {
                 controllerDisplayName,
                 projectDirectory,
                 controllerDirectory,
+                workspaceFile,
                 buildRequestFiles(model)
         );
     }
@@ -81,6 +92,11 @@ public final class BrunoCollectionWriter {
         Files.createDirectories(preparedCollection.projectDirectory());
         Files.createDirectories(preparedCollection.controllerDirectory());
 
+        writeWorkspaceFile(
+                preparedCollection.workspaceFile(),
+                preparedCollection.collectionName(),
+                preparedCollection.projectDirectory()
+        );
         writeProjectCollectionFileIfMissing(preparedCollection.projectDirectory(), preparedCollection.collectionName());
         writeFile(
                 preparedCollection.controllerDirectory().resolve(FOLDER_FILE),
@@ -453,6 +469,31 @@ public final class BrunoCollectionWriter {
         }
     }
 
+    private void writeWorkspaceFile(Path workspaceFile, String collectionName, Path projectDirectory) throws IOException {
+        Path workspaceDirectory = workspaceFile.getParent();
+        if (workspaceDirectory != null) {
+            Files.createDirectories(workspaceDirectory);
+        }
+
+        String workspaceName = resolveWorkspaceName(workspaceDirectory);
+        String collectionPath = toWorkspaceRelativePath(workspaceDirectory, projectDirectory);
+        WorkspaceDocument workspace = Files.exists(workspaceFile)
+                ? parseWorkspaceFile(Files.readString(workspaceFile, StandardCharsets.UTF_8), workspaceName)
+                : new WorkspaceDocument(workspaceName, new ArrayList<>(), null);
+
+        Map<String, WorkspaceCollectionEntry> collectionsByPath = new LinkedHashMap<>();
+        for (WorkspaceCollectionEntry entry : workspace.collections()) {
+            collectionsByPath.putIfAbsent(entry.path(), entry);
+        }
+        collectionsByPath.put(collectionPath, new WorkspaceCollectionEntry(collectionName, collectionPath));
+        List<WorkspaceCollectionEntry> updatedCollections = new ArrayList<>(collectionsByPath.values());
+
+        writeFile(
+                workspaceFile,
+                renderWorkspaceFile(workspace.workspaceName(), updatedCollections, workspace.activeEnvironmentUid())
+        );
+    }
+
     private String renderCollectionFile(String collectionName) {
         StringBuilder builder = new StringBuilder();
         builder.append("opencollection: 1.0.0\n\n");
@@ -467,10 +508,86 @@ public final class BrunoCollectionWriter {
         return builder.toString();
     }
 
+    private WorkspaceDocument parseWorkspaceFile(String content, String defaultWorkspaceName) {
+        String workspaceName = defaultWorkspaceName;
+        String activeEnvironmentUid = null;
+        List<WorkspaceCollectionEntry> collections = new ArrayList<>();
+        String pendingCollectionName = null;
+        boolean inInfo = false;
+        boolean inCollections = false;
+
+        String normalized = content == null ? "" : content.replace("\r\n", "\n");
+        for (String line : normalized.split("\n", -1)) {
+            if ("info:".equals(line)) {
+                inInfo = true;
+                inCollections = false;
+                continue;
+            }
+            if ("collections:".equals(line)) {
+                inCollections = true;
+                inInfo = false;
+                pendingCollectionName = null;
+                continue;
+            }
+            if (line.startsWith("activeEnvironmentUid:")) {
+                activeEnvironmentUid = line.substring("activeEnvironmentUid:".length()).trim();
+            }
+            if (inInfo) {
+                if (line.startsWith("  name:")) {
+                    workspaceName = parseYamlScalar(line.substring("  name:".length()).trim(), defaultWorkspaceName);
+                    continue;
+                }
+                if (!line.startsWith("  ") && !line.isBlank()) {
+                    inInfo = false;
+                }
+            }
+            if (inCollections) {
+                if (line.startsWith("  - name:")) {
+                    pendingCollectionName = parseYamlScalar(line.substring("  - name:".length()).trim(), "");
+                    continue;
+                }
+                if (line.startsWith("    path:") && pendingCollectionName != null) {
+                    String path = parseYamlScalar(line.substring("    path:".length()).trim(), "");
+                    collections.add(new WorkspaceCollectionEntry(pendingCollectionName, path));
+                    pendingCollectionName = null;
+                    continue;
+                }
+                if (!line.startsWith("  ") && !line.isBlank()) {
+                    inCollections = false;
+                }
+            }
+        }
+
+        return new WorkspaceDocument(workspaceName, collections, activeEnvironmentUid);
+    }
+
     private String renderFolderFile(String controllerDisplayName) {
         StringBuilder builder = new StringBuilder();
         builder.append("info:\n");
         builder.append("  name: ").append(yamlString(controllerDisplayName)).append('\n');
+        return builder.toString();
+    }
+
+    private String renderWorkspaceFile(
+            String workspaceName,
+            List<WorkspaceCollectionEntry> collections,
+            String activeEnvironmentUid
+    ) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("opencollection: 1.0.0\n");
+        builder.append("info:\n");
+        builder.append("  name: ").append(yamlString(workspaceName)).append('\n');
+        builder.append("  type: workspace\n\n");
+        builder.append("collections:\n");
+        for (WorkspaceCollectionEntry entry : collections) {
+            builder.append("  - name: ").append(yamlString(entry.name())).append('\n');
+            builder.append("    path: ").append(yamlString(entry.path())).append('\n');
+        }
+        builder.append("\nspecs:\n\n");
+        builder.append("docs: ''\n");
+        if (activeEnvironmentUid != null && !activeEnvironmentUid.isBlank()) {
+            builder.append("\nactiveEnvironmentUid: ").append(activeEnvironmentUid).append('\n');
+        }
         return builder.toString();
     }
 
@@ -542,6 +659,46 @@ public final class BrunoCollectionWriter {
         }
     }
 
+    private String resolveWorkspaceName(Path workspaceDirectory) {
+        if (workspaceDirectory == null || workspaceDirectory.getFileName() == null) {
+            return "workspace";
+        }
+        return workspaceDirectory.getFileName().toString();
+    }
+
+    private String toWorkspaceRelativePath(Path workspaceDirectory, Path projectDirectory) {
+        Path relativePath;
+        if (workspaceDirectory == null) {
+            relativePath = projectDirectory;
+        } else {
+            try {
+                relativePath = workspaceDirectory.relativize(projectDirectory);
+            } catch (IllegalArgumentException exception) {
+                relativePath = projectDirectory;
+            }
+        }
+        return relativePath.toString().replace('\\', '/');
+    }
+
+    private String parseYamlScalar(String rawValue, String fallbackValue) {
+        if (rawValue == null) {
+            return fallbackValue;
+        }
+        String trimmed = rawValue.trim();
+        if (trimmed.isEmpty()) {
+            return fallbackValue;
+        }
+        if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
+            return trimmed.substring(1, trimmed.length() - 1)
+                    .replace("\\\"", "\"")
+                    .replace("\\n", "\n")
+                    .replace("\\r", "\r")
+                    .replace("\\t", "\t")
+                    .replace("\\\\", "\\");
+        }
+        return trimmed;
+    }
+
     private String yamlString(String value) {
         String normalized = value == null ? "" : value;
         return "\"" + normalized
@@ -568,8 +725,19 @@ public final class BrunoCollectionWriter {
             String controllerDisplayName,
             Path projectDirectory,
             Path controllerDirectory,
+            Path workspaceFile,
             List<RequestFile> requestFiles
     ) {
+    }
+
+    private record WorkspaceDocument(
+            String workspaceName,
+            List<WorkspaceCollectionEntry> collections,
+            String activeEnvironmentUid
+    ) {
+    }
+
+    private record WorkspaceCollectionEntry(String name, String path) {
     }
 
     private record RequestFile(
