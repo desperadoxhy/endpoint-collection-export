@@ -2,15 +2,15 @@
 
 ## 项目简介
 
-本项目是一个 IntelliJ IDEA 插件，当前目标是为 Java Spring Boot 项目提供“导出到 Bruno”的能力。
+本项目是一个 IntelliJ IDEA 插件，当前目标是为 Java Spring Boot 项目提供“导出接口集合”的能力，生成兼容 Bruno 的 OpenCollection YAML 文件。
 
 当前已确认的核心功能如下：
 
-1. 在 Spring Boot 项目的 `controller` 中，支持右键菜单操作：`导出到 Bruno`。
-2. 导出时，基于当前 `controller` 的注释、注解、入参类型、入参注解、出参类型，直接生成 Bruno 原生 Collection 文件。
-3. 生成结果优先采用 Bruno 官方推荐的 OpenCollection YAML 格式，直接写入用户指定目录，不再依赖 Bruno CLI。
+1. 在 Spring Boot 项目的 `controller` 中，支持右键菜单操作：`导出接口集合`。
+2. 导出时，基于当前 `controller` 的注释、注解、入参类型、入参注解、出参类型，直接生成 OpenCollection Collection 文件。
+3. 生成结果优先采用 OpenCollection YAML 格式，直接写入用户指定目录，不再依赖 Bruno CLI。
 4. 第一阶段仅需支持 Spring Boot 2 的原生自带 Web 注解，不额外兼容第三方扩展注解。
-5. Bruno 输出目录配置为应用级全局配置，跨项目生效；该配置不能为空，导出时若为空需弹出对话框让用户输入或选择。
+5. Collection 输出目录配置为应用级全局配置，跨项目生效；该配置不能为空，导出时若为空需弹出对话框让用户输入或选择。
 6. 实际导出目录结构默认为：已配置基础目录 / 项目名 / controller 名；`opencollection.yml` 只在项目级目录生成，不在 controller 目录重复生成。
 7. 导出时若项目级目录下已存在 `opencollection.yml`，则直接复用，不重复生成该文件。
 8. 导出时若项目目录、controller 目录或接口对应的 API 文件已存在，则直接复用，不重复创建，也不覆盖更新已有文件。
@@ -18,7 +18,7 @@
 10. 导出完成后，需在 IDEA 运行窗口展示本次导出结果摘要与接口明细；摘要至少包含当前服务名、当前类名、项目目录、controller 目录、类中接口总数、执行导出的接口数量、跳过数量、实际成功导出数量；接口明细需以字符表格展示接口相对 URL、方法名、导出结果、接口名称；表格标题与列标题使用英文展示，导出结果列的值也使用英文展示；运行窗口顶部不再单独重复输出一行总述，项目目录与 controller 目录若可行则应支持点击后直接打开对应的 Windows 资源管理器目录；为避免中英文字符宽度差异导致的右侧错位，详情表格需移除最外层四周边框，仅保留内部列分隔样式。
 11. 若接口注释存在多行，则接口名称仅取注释第一行，且需移除其中的 HTML 标签；该规则同时适用于生成的 yml 文件内容中的接口名称以及运行窗口导出结果中的接口名称。
 12. controller 目录下的 `folder.yml` 由插件显式生成或更新，其 `info.name` 字段值应使用 controller 注释摘要；若 controller 注释为空，则回退为 controller 名称。
-13. 当导出产生新的项目级 Bruno Collection 时，插件需同步维护 workspace 根目录下的 `workspace.yml`，确保当前 collection 被加入 `collections` 列表；若对应 collection 已存在，则不重复添加。
+13. 当导出产生新的项目级 Collection 时，插件需同步维护 workspace 根目录下的 `workspace.yml`，确保当前 collection 被加入 `collections` 列表；若对应 collection 已存在，则不重复添加。
 14. 导出 controller 时，除当前 controller 本类声明的 Spring 接口外，还需包含其继承基类中已实现的 Spring 接口；右键方法名导出时仍仅导出当前所选方法对应的单个接口。
 15. 项目源码采用 `Apache License 2.0` 许可，对外允许阅读、复制、修改、重新发布及商用。
 
@@ -37,6 +37,7 @@
 9. 输出给用户的 `build`、`buildPlugin` 等构建/打包命令可默认省略 `cd`，按仓库根目录执行来表达。
 10. 已确认当前代理执行环境无法自行完成 Gradle 构建验证；后续无需再次尝试本地构建，也无需重复向用户解释该限制，只需基于用户提供的真实构建结果继续处理问题。
 11. 涉及许可、README、发布说明等对外文档时，需明确本项目采用 `Apache License 2.0` 开源许可，并保持相关说明一致。
+12. 对外命名、插件名称、界面主文案应避免直接使用 `Bruno` 品牌词；README、Marketplace 描述等兼容性说明中可保留 `Bruno-compatible` 表述，以兼顾搜索与品牌风险控制。
 
 ## Git 提交规则
 
