@@ -3,7 +3,15 @@
     <name>Bruno Helper</name>
     <vendor url="https://github.com/ZeroJehovah" email="icerovah@gmail.com">ZeroJehovah</vendor>
     <description><![CDATA[
-        Export Spring Boot controllers to native Bruno collection files.
+        Exports Spring Boot controllers to Bruno-compatible OpenCollection YAML files.
+        <br/><br/>
+        <ul>
+            <li>Export a whole controller or a single endpoint from the context menu.</li>
+            <li>Generate <code>opencollection.yml</code>, <code>folder.yml</code>, and workspace entries automatically.</li>
+            <li>Reuse existing project, controller, and endpoint files instead of overwriting them.</li>
+            <li>Include Spring endpoints declared in inherited base controllers.</li>
+        </ul>
+        Source code: <a href="https://github.com/ZeroJehovah/Bruno-Helper">GitHub</a>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>

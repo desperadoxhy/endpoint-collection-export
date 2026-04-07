@@ -33,7 +33,13 @@ intellijPlatform {
         }
 
         changeNotes = """
-            Initial plugin skeleton for exporting Spring Boot controllers to Bruno.
+            <p>Initial public release.</p>
+            <ul>
+                <li>Export Spring Boot 2 controllers or single endpoints to Bruno-compatible OpenCollection YAML files.</li>
+                <li>Generate and reuse <code>workspace.yml</code>, <code>opencollection.yml</code>, and <code>folder.yml</code>.</li>
+                <li>Include endpoints declared in inherited base controllers during controller export.</li>
+                <li>Show export summaries and endpoint details in the IDE Run tool window.</li>
+            </ul>
         """.trimIndent()
     }
 }
