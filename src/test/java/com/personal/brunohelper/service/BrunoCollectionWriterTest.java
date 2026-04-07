@@ -61,12 +61,16 @@ class BrunoCollectionWriterTest {
         assertEquals(ExportEndpointStatus.SUCCESS, result.endpointResults().get(0).status());
         assertEquals("/order-files/:id", result.endpointResults().get(0).relativeUrl());
         assertTrue(Files.exists(result.projectDirectory().resolve("opencollection.yml")));
+        assertTrue(Files.exists(result.controllerDirectory().resolve("folder.yml")));
         assertTrue(Files.exists(result.controllerDirectory().resolve("GET-order-files-id-OrderFileController.getById.yml")));
         assertTrue(Files.notExists(result.controllerDirectory().resolve("opencollection.yml")));
 
         String collectionFile = Files.readString(result.projectDirectory().resolve("opencollection.yml"));
         assertTrue(collectionFile.contains("opencollection: 1.0.0"));
         assertTrue(collectionFile.contains("name: \"demo project\""));
+        String folderFile = Files.readString(result.controllerDirectory().resolve("folder.yml"));
+        assertTrue(folderFile.contains("info:"));
+        assertTrue(folderFile.contains("name: \"订单文件\""));
 
         Path requestFile = result.controllerDirectory().resolve("GET-order-files-id-OrderFileController.getById.yml");
         String requestContent = Files.readString(requestFile);
@@ -210,5 +214,67 @@ class BrunoCollectionWriterTest {
         assertEquals(0, result.failedRequestCount());
         assertEquals(ExportEndpointStatus.SKIPPED, result.endpointResults().get(0).status());
         assertEquals("existing-request", Files.readString(existingRequestFile));
+    }
+
+    @Test
+    void shouldUpdateControllerFolderMetadataName() throws IOException {
+        BrunoCollectionWriter writer = new BrunoCollectionWriter();
+        Path projectDirectory = tempDir.resolve("demo-project");
+        Path controllerDirectory = projectDirectory.resolve("OrderFileController");
+        Files.createDirectories(controllerDirectory);
+        Files.writeString(controllerDirectory.resolve("folder.yml"), "info:\n  name: \"旧名称\"\n", java.nio.charset.StandardCharsets.UTF_8);
+
+        ControllerExportModel model = new ControllerExportModel(
+                "OrderFileController",
+                "订单文件",
+                "",
+                List.of(new EndpointExportModel(
+                        "OrderFileController.getById",
+                        "查询订单文件",
+                        "",
+                        List.of("/order-files/{id}"),
+                        Set.of("GET"),
+                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiType.INT)),
+                        null,
+                        PsiType.VOID
+                ))
+        );
+
+        writer.writeCollection(model, "demo project", projectDirectory, controllerDirectory);
+
+        assertEquals(
+                "info:\n  name: \"订单文件\"\n",
+                Files.readString(controllerDirectory.resolve("folder.yml"))
+        );
+    }
+
+    @Test
+    void shouldFallbackToControllerNameWhenSummaryIsBlank() throws IOException {
+        BrunoCollectionWriter writer = new BrunoCollectionWriter();
+        Path projectDirectory = tempDir.resolve("demo-project");
+        Path controllerDirectory = projectDirectory.resolve("OrderFileController");
+
+        ControllerExportModel model = new ControllerExportModel(
+                "OrderFileController",
+                "",
+                "",
+                List.of(new EndpointExportModel(
+                        "OrderFileController.getById",
+                        "查询订单文件",
+                        "",
+                        List.of("/order-files/{id}"),
+                        Set.of("GET"),
+                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiType.INT)),
+                        null,
+                        PsiType.VOID
+                ))
+        );
+
+        writer.writeCollection(model, "demo project", projectDirectory, controllerDirectory);
+
+        assertEquals(
+                "info:\n  name: \"OrderFileController\"\n",
+                Files.readString(controllerDirectory.resolve("folder.yml"))
+        );
     }
 }

@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 public final class BrunoCollectionWriter {
 
     private static final String COLLECTION_FILE = "opencollection.yml";
+    private static final String FOLDER_FILE = "folder.yml";
     private static final Pattern PATH_VARIABLE_PATTERN = Pattern.compile("\\{([^}/]+)}");
     private static final Map<String, Integer> HTTP_METHOD_ORDER = Map.of(
             "GET", 1,
@@ -64,9 +65,12 @@ public final class BrunoCollectionWriter {
             Path controllerDirectory
     ) {
         String collectionName = projectName == null || projectName.isBlank() ? "project" : projectName;
+        String controllerDisplayName = model.getSummary() == null || model.getSummary().isBlank()
+                ? model.getControllerName()
+                : model.getSummary();
         return new PreparedCollection(
                 collectionName,
-                model.getControllerName(),
+                controllerDisplayName,
                 projectDirectory,
                 controllerDirectory,
                 buildRequestFiles(model)
@@ -78,6 +82,10 @@ public final class BrunoCollectionWriter {
         Files.createDirectories(preparedCollection.controllerDirectory());
 
         writeProjectCollectionFileIfMissing(preparedCollection.projectDirectory(), preparedCollection.collectionName());
+        writeFile(
+                preparedCollection.controllerDirectory().resolve(FOLDER_FILE),
+                renderFolderFile(preparedCollection.controllerDisplayName())
+        );
 
         int sequence = 1;
         int createdCount = 0;
@@ -459,6 +467,13 @@ public final class BrunoCollectionWriter {
         return builder.toString();
     }
 
+    private String renderFolderFile(String controllerDisplayName) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("info:\n");
+        builder.append("  name: ").append(yamlString(controllerDisplayName)).append('\n');
+        return builder.toString();
+    }
+
     private String renderRequestFile(RequestFile requestFile, int sequence) {
         StringBuilder builder = new StringBuilder();
         builder.append("info:\n");
@@ -550,7 +565,7 @@ public final class BrunoCollectionWriter {
 
     record PreparedCollection(
             String collectionName,
-            String controllerName,
+            String controllerDisplayName,
             Path projectDirectory,
             Path controllerDirectory,
             List<RequestFile> requestFiles
