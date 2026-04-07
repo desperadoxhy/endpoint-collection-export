@@ -20,7 +20,7 @@
 12. controller 目录下的 `folder.yml` 由插件显式生成或更新，其 `info.name` 字段值应使用 controller 注释摘要；若 controller 注释为空，则回退为 controller 名称。
 13. 当导出产生新的项目级 Bruno Collection 时，插件需同步维护 workspace 根目录下的 `workspace.yml`，确保当前 collection 被加入 `collections` 列表；若对应 collection 已存在，则不重复添加。
 14. 导出 controller 时，除当前 controller 本类声明的 Spring 接口外，还需包含其继承基类中已实现的 Spring 接口；右键方法名导出时仍仅导出当前所选方法对应的单个接口。
-15. 项目源码采用 `PolyForm Noncommercial 1.0.0` 许可，对外允许阅读、复制、修改、重新发布，但禁止商用。
+15. 项目源码采用 `Apache License 2.0` 许可，对外允许阅读、复制、修改、重新发布及商用。
 
 后续当项目需求新增、变更或收敛时，必须同步更新本文件中的“项目简介”，确保 AGENTS.md 始终反映最新项目目标与范围。
 
@@ -36,7 +36,7 @@
 8. 如需参考业务项目的 `controller` 写法，可参考 `/opt/dev/projects/work/scm/middle_platform/sch-order-service`。
 9. 输出给用户的 `build`、`buildPlugin` 等构建/打包命令可默认省略 `cd`，按仓库根目录执行来表达。
 10. 已确认当前代理执行环境无法自行完成 Gradle 构建验证；后续无需再次尝试本地构建，也无需重复向用户解释该限制，只需基于用户提供的真实构建结果继续处理问题。
-11. 涉及许可、README、发布说明等对外文档时，需明确本项目采用 `PolyForm Noncommercial 1.0.0` 非商用源码许可，不应表述为符合 OSI 定义的开源许可。
+11. 涉及许可、README、发布说明等对外文档时，需明确本项目采用 `Apache License 2.0` 开源许可，并保持相关说明一致。
 
 ## Git 提交规则
 
