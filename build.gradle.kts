@@ -19,7 +19,7 @@ val signingPrivateKey = optionalSetting("JETBRAINS_PRIVATE_KEY", "intellijPlatfo
 val signingPrivateKeyPassword = optionalSetting("JETBRAINS_PRIVATE_KEY_PASSWORD", "intellijPlatformSigningPrivateKeyPassword")
 
 group = "io.github.zerojehovah.endpointcollectionexport"
-version = "1.0.1"
+version = "1.0.2"
 val projectVersion = version.toString()
 
 repositories {
