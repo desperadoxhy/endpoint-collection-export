@@ -1,6 +1,6 @@
 package com.personal.brunohelper.service;
 
-import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.personal.brunohelper.model.ControllerExportModel;
 import com.personal.brunohelper.model.EndpointExportModel;
 import com.personal.brunohelper.model.EndpointParameterModel;
@@ -40,12 +40,12 @@ class BrunoCollectionWriterTest {
                         List.of("/samples/{id}"),
                         Set.of("GET"),
                         List.of(
-                                new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiType.INT),
-                                new EndpointParameterModel("page", "", false, "1", ParameterSource.REQUEST_PARAM, PsiType.INT),
-                                new EndpointParameterModel("X-Trace-Id", "", false, null, ParameterSource.REQUEST_HEADER, PsiType.INT)
+                                new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiTypes.intType()),
+                                new EndpointParameterModel("page", "", false, "1", ParameterSource.REQUEST_PARAM, PsiTypes.intType()),
+                                new EndpointParameterModel("X-Trace-Id", "", false, null, ParameterSource.REQUEST_HEADER, PsiTypes.intType())
                         ),
                         null,
-                        PsiType.VOID
+                        PsiTypes.voidType()
                 ))
         );
 
@@ -103,8 +103,8 @@ class BrunoCollectionWriterTest {
                         List.of("/health/echo"),
                         Set.of("POST"),
                         List.of(),
-                        new RequestBodyModel(PsiType.INT, true, "", "application/json"),
-                        PsiType.VOID
+                        new RequestBodyModel(PsiTypes.intType(), true, "", "application/json"),
+                        PsiTypes.voidType()
                 ))
         );
 
@@ -142,7 +142,7 @@ class BrunoCollectionWriterTest {
                         Set.of("POST"),
                         List.of(),
                         null,
-                        PsiType.VOID
+                        PsiTypes.voidType()
                 ))
         );
 
@@ -173,9 +173,9 @@ class BrunoCollectionWriterTest {
                         "",
                         List.of("/samples/{id}"),
                         Set.of("GET"),
-                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiType.INT)),
+                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiTypes.intType())),
                         null,
-                        PsiType.VOID
+                        PsiTypes.voidType()
                 ))
         );
 
@@ -206,9 +206,9 @@ class BrunoCollectionWriterTest {
                         "",
                         List.of("/samples/{id}"),
                         Set.of("GET"),
-                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiType.INT)),
+                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiTypes.intType())),
                         null,
-                        PsiType.VOID
+                        PsiTypes.voidType()
                 ))
         );
 
@@ -239,9 +239,9 @@ class BrunoCollectionWriterTest {
                         "",
                         List.of("/samples/{id}"),
                         Set.of("GET"),
-                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiType.INT)),
+                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiTypes.intType())),
                         null,
-                        PsiType.VOID
+                        PsiTypes.voidType()
                 ))
         );
 
@@ -269,9 +269,9 @@ class BrunoCollectionWriterTest {
                         "",
                         List.of("/samples/{id}"),
                         Set.of("GET"),
-                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiType.INT)),
+                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiTypes.intType())),
                         null,
-                        PsiType.VOID
+                        PsiTypes.voidType()
                 ))
         );
 
@@ -319,9 +319,9 @@ class BrunoCollectionWriterTest {
                         "",
                         List.of("/samples/{id}"),
                         Set.of("GET"),
-                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiType.INT)),
+                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiTypes.intType())),
                         null,
-                        PsiType.VOID
+                        PsiTypes.voidType()
                 ))
         );
 
@@ -370,9 +370,9 @@ class BrunoCollectionWriterTest {
                         "",
                         List.of("/samples/{id}"),
                         Set.of("GET"),
-                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiType.INT)),
+                        List.of(new EndpointParameterModel("id", "", true, null, ParameterSource.PATH_VARIABLE, PsiTypes.intType())),
                         null,
-                        PsiType.VOID
+                        PsiTypes.voidType()
                 ))
         );
 
