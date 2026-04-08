@@ -20,6 +20,7 @@ val signingPrivateKeyPassword = optionalSetting("JETBRAINS_PRIVATE_KEY_PASSWORD"
 
 group = "io.github.zerojehovah.endpointcollectionexport"
 version = "1.0.1"
+val projectVersion = version.toString()
 
 repositories {
     mavenCentral()
@@ -75,7 +76,7 @@ intellijPlatform {
 tasks {
     register("printVersion") {
         doLast {
-            println(project.version)
+            println(projectVersion)
         }
     }
 
