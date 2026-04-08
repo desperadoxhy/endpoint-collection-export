@@ -15,7 +15,7 @@ public final class BrunoExportReportFormatter {
 
     public String formatSummary(ExportReport report) {
         StringBuilder builder = new StringBuilder();
-        builder.append(BrunoHelperBundle.message("export.report.title")).append('\n');
+        builder.append(BrunoHelperBundle.message("export.report.title")).append('\n').append('\n');
         builder.append(BrunoHelperBundle.message("export.report.summary.service")).append(' ').append(report.serviceName()).append('\n');
         builder.append(BrunoHelperBundle.message("export.report.summary.class")).append(' ').append(report.className()).append('\n');
         builder.append(BrunoHelperBundle.message("export.report.summary.total")).append(' ').append(report.controllerEndpointCount()).append('\n');
