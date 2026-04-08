@@ -104,6 +104,6 @@ build/distributions/
 - 本项目与 Bruno 官方无隶属关系
 - 插件 ID：`io.github.zerojehovah.endpointcollectionexport`
 - 插件名称：`Endpoint Collection Export`
-- 当前版本：`1.0.0`
+- 当前版本：`1.0.1`
 
 如果后续需要扩展支持更多 Spring 注解或更复杂的继承/接口声明场景，可以继续在解析器和导出规则上迭代。
