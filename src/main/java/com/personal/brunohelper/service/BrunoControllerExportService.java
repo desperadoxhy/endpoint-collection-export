@@ -51,9 +51,10 @@ public final class BrunoControllerExportService implements ControllerExportServi
         Path projectDirectory = null;
         Path controllerDirectory = null;
         Path workspaceFile = BrunoExportOptions.resolveWorkspaceFile(baseOutputDirectory);
+        PsiClass controllerClass = controllerPointer.getElement();
         try {
             projectDirectory = BrunoExportOptions.resolveProjectDirectory(baseOutputDirectory, project.getName());
-            controllerDirectory = BrunoExportOptions.resolveControllerDirectory(projectDirectory, exportModel.getControllerName());
+            controllerDirectory = BrunoExportOptions.resolveControllerDirectory(projectDirectory, exportModel.getControllerName(), controllerClass);
             Files.createDirectories(projectDirectory);
         } catch (IOException exception) {
             return ExportOutcome.failure(

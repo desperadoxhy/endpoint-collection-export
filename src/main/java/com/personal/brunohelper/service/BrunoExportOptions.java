@@ -1,5 +1,6 @@
 package com.personal.brunohelper.service;
 
+import com.intellij.psi.PsiClass;
 import com.personal.brunohelper.i18n.BrunoHelperBundle;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,8 +47,45 @@ public final class BrunoExportOptions {
     }
 
     public static Path resolveControllerDirectory(Path projectDirectory, String controllerName) {
+        return resolveControllerDirectory(projectDirectory, controllerName, null);
+    }
+
+    public static Path resolveControllerDirectory(Path projectDirectory, String controllerName, @Nullable PsiClass controllerClass) {
         String safeControllerName = sanitizeFileSystemName(controllerName == null || controllerName.isBlank() ? "Controller" : controllerName);
+        String subDirectory = extractSubDirectoryFromPackage(controllerClass);
+        if (subDirectory != null && !subDirectory.isBlank()) {
+            return projectDirectory.resolve(subDirectory).resolve(safeControllerName);
+        }
         return projectDirectory.resolve(safeControllerName);
+    }
+
+    private static @Nullable String extractSubDirectoryFromPackage(@Nullable PsiClass controllerClass) {
+        if (controllerClass == null) {
+            return null;
+        }
+        String packageName = controllerClass.getQualifiedName();
+        if (packageName == null) {
+            return null;
+        }
+        int lastDotIndex = packageName.lastIndexOf('.');
+        if (lastDotIndex < 0) {
+            return null;
+        }
+        packageName = packageName.substring(0, lastDotIndex);
+
+        String[] parts = packageName.split("\\.");
+        String subDirectory = null;
+        boolean foundController = false;
+        for (int i = 0; i < parts.length; i++) {
+            if (parts[i].equalsIgnoreCase("controller")) {
+                if (i + 1 < parts.length) {
+                    subDirectory = parts[i + 1];
+                    foundController = true;
+                    break;
+                }
+            }
+        }
+        return foundController ? sanitizeFileSystemName(subDirectory) : null;
     }
 
     public static String deriveCollectionName(String controllerName) {
