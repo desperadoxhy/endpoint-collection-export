@@ -7,6 +7,9 @@ import com.intellij.openapi.components.Storage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @State(name = "EndpointCollectionExportSettings", storages = @Storage("endpoint-collection-export.xml"))
 public final class BrunoHelperSettingsState implements PersistentStateComponent<BrunoHelperSettingsState.State> {
 
@@ -37,7 +40,16 @@ public final class BrunoHelperSettingsState implements PersistentStateComponent<
         state.collectionOutputDirectory = collectionOutputDirectory == null ? "" : collectionOutputDirectory.trim();
     }
 
+    public List<String> getFieldBlacklistPatterns() {
+        return state.fieldBlacklistPatterns == null ? new ArrayList<>() : new ArrayList<>(state.fieldBlacklistPatterns);
+    }
+
+    public void setFieldBlacklistPatterns(List<String> fieldBlacklistPatterns) {
+        state.fieldBlacklistPatterns = fieldBlacklistPatterns == null ? new ArrayList<>() : new ArrayList<>(fieldBlacklistPatterns);
+    }
+
     public static final class State {
         public String collectionOutputDirectory = "";
+        public List<String> fieldBlacklistPatterns = new ArrayList<>();
     }
 }

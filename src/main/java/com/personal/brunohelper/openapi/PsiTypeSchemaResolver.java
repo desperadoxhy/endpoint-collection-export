@@ -12,6 +12,8 @@ import com.intellij.psi.PsiTypes;
 import com.personal.brunohelper.parser.AnnotationUtils;
 import com.personal.brunohelper.parser.DocCommentUtil;
 import com.personal.brunohelper.parser.PsiTypeSupport;
+import com.personal.brunohelper.settings.BrunoHelperSettingsState;
+import com.personal.brunohelper.util.FieldBlacklistUtil;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.BinarySchema;
@@ -148,15 +150,23 @@ public final class PsiTypeSchemaResolver {
         }
         PsiSubstitutor substitutor = resolveResult.getSubstitutor();
         Map<String, PropertyDescriptor> properties = new LinkedHashMap<>();
+        List<String> blacklist = BrunoHelperSettingsState.getInstance().getFieldBlacklistPatterns();
         for (PsiField field : psiClass.getAllFields()) {
             if (field.hasModifierProperty(PsiModifier.STATIC)) {
+                continue;
+            }
+            String fieldName = field.getName();
+            if (fieldName == null) {
+                continue;
+            }
+            if (!blacklist.isEmpty() && FieldBlacklistUtil.isBlacklisted(fieldName, blacklist)) {
                 continue;
             }
             PsiType fieldType = substitutor.substitute(field.getType());
             if (fieldType == null) {
                 fieldType = field.getType();
             }
-            properties.putIfAbsent(field.getName(), new PropertyDescriptor(
+            properties.putIfAbsent(fieldName, new PropertyDescriptor(
                     field.getName(),
                     resolveSchema(fieldType),
                     AnnotationUtils.hasRequiredValidation(field),
@@ -197,12 +207,16 @@ public final class PsiTypeSchemaResolver {
         PsiClassType.ClassResolveResult resolveResult = classType.resolveGenerics();
         PsiSubstitutor substitutor = resolveResult.getSubstitutor();
         Set<String> requiredFields = new LinkedHashSet<>();
+        List<String> blacklist = BrunoHelperSettingsState.getInstance().getFieldBlacklistPatterns();
         for (PsiField field : psiClass.getAllFields()) {
             if (field.hasModifierProperty(PsiModifier.STATIC)) {
                 continue;
             }
             String fieldName = field.getName();
             if (fieldName == null || schema.getProperties() != null && schema.getProperties().containsKey(fieldName)) {
+                continue;
+            }
+            if (!blacklist.isEmpty() && FieldBlacklistUtil.isBlacklisted(fieldName, blacklist)) {
                 continue;
             }
             PsiType fieldType = substitutor.substitute(field.getType());
